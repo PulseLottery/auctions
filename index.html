@@ -241,7 +241,7 @@
             placeBidButton.addEventListener("click", async function () {
                 hideError(); // Hide previous error
 
-                const bidAmount = ethers.utils.parseEther("100"); // Set bid amount to 1000
+                const bidAmount = ethers.utils.parseEther("1000"); // Set bid amount to 1000
 
                 try {
                     const transaction = await auctionContract.joinAuction({ value: bidAmount });
