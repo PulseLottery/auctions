@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Auction Contract</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.6.1/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // MetaMask setup
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contractAddress = '0xF529A4A4F119c23bE8503BD54C38b358aF39457f'; // Replace with your actual contract address
+        const auctionContractABI = [
+	{
+		"inputs": [],
+		"name": "depositFunds",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "endAuction",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "joinAuction",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "startNewAuction",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "winner",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "winningPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "Win",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "withdrawFunds",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "auctionActive",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "auctionDuration",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "endTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTimeRemaining",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "lastBidder",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "packageSize",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "price",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "remainingPackets",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "startTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "timeRemaining",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+        const auctionContract = new ethers.Contract(contractAddress, auctionContractABI, signer);
+
+        $(document).ready(async function () {
+            // Sample button IDs
+            const placeBidButton = document.getElementById("placeBidButton");
+            const endAuctionButton = document.getElementById("endAuctionButton");
+            const startNewAuction = document.getElementById("startNewAuction");
+
+            // Function to display errors
+            function displayError(message) {
+                const errorContainer = document.getElementById("errorContainer");
+                errorContainer.textContent = message;
+                errorContainer.style.display = "block";
+            }
+
+            // Function to hide errors
+            function hideError() {
+                const errorContainer = document.getElementById("errorContainer");
+                errorContainer.style.display = "none";
+            }
+
+            // Event handler for "Place Bid" button
+            placeBidButton.addEventListener("click", async function () {
+                hideError(); // Hide previous error
+
+                const bidAmount = ethers.utils.parseEther("100"); // Set bid amount to 1000
+
+                try {
+                    const transaction = await auctionContract.joinAuction({ value: bidAmount });
+                    await transaction.wait();
+                    console.log("Successfully joined the auction!");
+                } catch (error) {
+                    const errorMessage = "An error occurred while joining the auction: " + error.message;
+                    console.log(errorMessage);
+                    displayError(errorMessage);
+                }
+            });
+
+            // Event handler for "End Auction" button
+            endAuctionButton.addEventListener("click", async function () {
+                hideError(); // Hide previous error
+
+                try {
+                    const transaction = await auctionContract.endAuction();
+                    await transaction.wait();
+                    console.log("Auction ended!");
+                } catch (error) {
+                    const errorMessage = "An error occurred while ending the auction: " + error.message;
+                    console.log(errorMessage);
+                    displayError(errorMessage);
+                }
+            });
+
+            // Event handler for "Start New Auction" button
+            startNewAuction.addEventListener("click", async function () {
+                hideError(); // Hide previous error
+
+                try {
+                    const transaction = await auctionContract.startNewAuction();
+                    await transaction.wait();
+                    console.log("New auction started!");
+                } catch (error) {
+                    const errorMessage = "An error occurred while starting a new auction: " + error.message;
+                    console.log(errorMessage);
+                    displayError(errorMessage);
+                }
+            });
+
+            // Function to update contract information
+            async function updateContractInfo() {
+                const startTime = await auctionContract.startTime();
+                const lastBidder = await auctionContract.lastBidder();
+                const isActive = await auctionContract.auctionActive();
+                const remainingPackets = await auctionContract.remainingPackets();
+                const timeRemaining = await auctionContract.getTimeRemaining();
+                const currentPrice = await auctionContract.price();
+
+                // Update HTML elements with the information
+                const startDate = new Date(startTime * 1000);
+                const startTimeString = startDate.toLocaleString();
+                $("#startTime").text("Start Time: " + startTimeString);
+                $("#lastBidder").text("Last Bidder: " + lastBidder);
+                $("#isActive").text("Auction Active: " + isActive);
+                $("#remainingPackets").text("Reward: 100 000 PLS").css("font-weight", "bold");
+                $("#timeRemaining").text("Time Remaining: " + timeRemaining + " sec");
+                $("#currentPrice").text("Bids: " + currentPrice);
+				
+				// Get the number of connected accounts from MetaMask
+                const accounts = await ethereum.request({ method: "eth_accounts" });
+                const connectedAccountsCount = accounts.length;
+                $("#connectedAccounts").text("Connected Accounts: " + connectedAccountsCount);
+            }
+
+            // Call the function to update contract information on page load
+            await updateContractInfo();
+
+            // Periodically update contract information every 1 second
+            setInterval(async function () {
+                await updateContractInfo();
+            }, 1000);
+        });
+    </script>
+    <style>
+        #errorContainer {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+		#connectedAccounts {
+            position: center;
+            top: 10px;
+            right: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Auction Contract</h1>
+    <p id="startTime">Start Time: </p>
+    <p id="lastBidder">Last Bidder: </p>
+    <p id="isActive">Auction Active: </p>
+    <p id="remainingPackets">Reward: </p>
+    <p id="timeRemaining">Time Remaining: </p>
+    <p id="currentPrice">Bids: </p>
+
+    <button id="placeBidButton">BID</button>
+    <button id="endAuctionButton">END AUCTION</button>
+    <button id="startNewAuction">START NEW AUCTION</button>
+
+    <div id="errorContainer"></div>
+	<p id="connectedAccounts"></p>
+</body>
+</html>
