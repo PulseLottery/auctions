@@ -294,7 +294,7 @@
                     hideError();
 
                     const currentPrice = await auctionContract.price();
-                    const bidAmount = ethers.utils.parseEther((1000 + currentPrice).toString());
+                    const bidAmount = ethers.utils.parseEther((100 + currentPrice).toString());
 
                     try {
                         const transaction = await auctionContract.joinAuction({ value: bidAmount });
