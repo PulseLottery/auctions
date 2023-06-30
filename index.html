@@ -82,6 +82,7 @@
         <p id="currentPrice">Bids: </p>
 
         <button id="placeBidButton" class="button">BID</button>
+	<a href="https://scan.pulsechain.com/address/0xB515e30E7D521093C79060a4b13CCB87Fe51Ac79" target="_blank" style="color: white; text-decoration: none;">SEE CONTRACT</a>
 
         <div id="errorContainer"></div>
         <p id="connectedAccounts"></p>
@@ -95,7 +96,7 @@
             // MetaMask setup
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = provider.getSigner();
-            const contractAddress = '0x77A29B750e56618CA8449CDC53A57B42d6c9f9A3'; // Replace with your actual contract address
+            const contractAddress = '0xB515e30E7D521093C79060a4b13CCB87Fe51Ac79'; // Replace with your actual contract address
             const auctionContractABI = [
 	{
 		"inputs": [],
